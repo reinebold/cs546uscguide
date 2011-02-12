@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" 
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content">
+	<Button android:id="@+id/getText" 
+	  	android:text="@string/getText"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" />
+	<Button android:id="@+id/getVisual"
+		android:text="@string/getVisual"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" />
+	<Button android:id="@+id/getAudio"
+		android:text="@string/getAudio"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" />
+	<Button android:id="@+id/cancel"
+		android:text="@string/cancel"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" />
+</LinearLayout>

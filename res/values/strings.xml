@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Assignment3</string>
+    <string name="menu_events">View Events</string>
+    <string name="menu_directions">Find Building</string>
+    <string name="code">Building Code</string>
+    <string name="lat">Building Latitude</string>
+    <string name="lon">Building Longitude</string>
+    <string name="get_directions">Get Directions</string>
+    <string name="confirm">Confirm</string>
+    <string name="getText">Get Text Directions</string>
+    <string name="getVisual">Get Visual Directions</string>
+    <string name="getAudio">Get Visual Directions w/ Audio Guide</string>
+    <string name="cancel">Cancel</string>
+    <string name="error">Could not find any building types!</string>
+    <string name="error_events">Could not find any events!</string>
+    <string name="menu_back">Back to map</string>
+</resources>
