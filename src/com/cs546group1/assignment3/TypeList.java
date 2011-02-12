@@ -64,19 +64,6 @@ private ArrayList<String> path;
     }
     
     /**
-     * onContextItemSelected() - delete the building selected from the context menu
-     */
-    public boolean onContextItemSelected(MenuItem item) {
-    	switch(item.getItemId()) {
-    		case SELECT_ID:
-    			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-    			
-    			return true;
-    		}
-    	return super.onContextItemSelected(item);
-    }
-    
-    /**
      * onListItemClick() - when the user clicks a building, show details in the building edit window.
      */
     protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -94,12 +81,13 @@ private ArrayList<String> path;
      * Handle returning back to the main map.
      */
     public boolean onOptionsItemSelected(MenuItem item) {
-    	Bundle bundle = new Bundle();
-    	Intent mIntent = new Intent();
-        mIntent.putExtras(bundle);
-        setResult(RESULT_OK, mIntent);
         switch(item.getItemId()) {
         case BACK_ID:
+        	Bundle bundle = new Bundle();
+        	bundle.putInt("BUTTON", TypeList.BUTTON_CANCEL);
+        	Intent mIntent = new Intent();
+            mIntent.putExtras(bundle);
+            setResult(RESULT_OK, mIntent);
         	finish();
         	return true;
         }

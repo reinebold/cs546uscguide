@@ -33,8 +33,8 @@ public class GetDirections extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.get_directions);
         setTitle(R.string.get_directions);
-        
-        codeText = savedInstanceState.getString(TypeList.TYPE_NAME);
+        Bundle extras = getIntent().getExtras();
+        codeText = extras.getString(BuildingList.BUILDING_CODE);
 
 
         Button getTextButton = (Button) findViewById(R.id.getText);

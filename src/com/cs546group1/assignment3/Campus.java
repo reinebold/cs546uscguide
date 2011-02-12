@@ -334,4 +334,9 @@ public class Campus {
 		// TODO Auto-generated method stub
 		return this.typesToBuildings.get((int)selection);
 	}
+
+	public String getCodeWithId(long typeCode, long buildingCode) {
+		// TODO Auto-generated method stub
+		return this.typesToBuildings.get((int)typeCode).get((int)buildingCode);
+	}
 }

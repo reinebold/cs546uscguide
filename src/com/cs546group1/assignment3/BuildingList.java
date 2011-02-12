@@ -21,7 +21,7 @@ public class BuildingList extends ListActivity {
 	
 	private ArrayList<String> buildings;
 
-	
+	private long typeCode;
 	/**
 	 * onCreate() - make a new GUI to view directions
 	 */
@@ -31,6 +31,7 @@ public class BuildingList extends ListActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
         	this.buildings = extras.getStringArrayList("buildings");
+        	this.typeCode = extras.getLong(TypeList.TYPE_NAME);
             this.arrange();
         }
         registerForContextMenu(getListView());
@@ -62,6 +63,7 @@ public class BuildingList extends ListActivity {
         Bundle bundle = new Bundle();
 		bundle.putInt("BUTTON", TypeList.BUTTON_SELECTED);
 		bundle.putLong(BuildingList.BUILDING_CODE, id);
+		bundle.putLong(TypeList.TYPE_NAME, this.typeCode);
 		i.putExtras(bundle);
         setResult(RESULT_OK, i);
         finish();
@@ -73,12 +75,13 @@ public class BuildingList extends ListActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
     	Bundle bundle = new Bundle();
     	Intent mIntent = new Intent();
-        mIntent.putExtras(bundle);
-        setResult(RESULT_OK, mIntent);
         switch(item.getItemId()) {
-        case BACK_ID:
-        	finish();
-        	return true;
+        	case BACK_ID:
+        		bundle.putInt("BUTTON", TypeList.BUTTON_CANCEL);
+        		mIntent.putExtras(bundle);
+        		setResult(RESULT_OK, mIntent);
+        		finish();
+        		return true;
         }
         finish();
         return true;

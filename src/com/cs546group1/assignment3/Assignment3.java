@@ -169,6 +169,7 @@ public class Assignment3 extends MapActivity implements LocationListener {
         		Intent i = new Intent(this, BuildingList.class);
         		ArrayList<String> types = campus.getBuildingsWithType(selection);
         		i.putStringArrayListExtra("buildings", types);
+        		i.putExtra(TypeList.TYPE_NAME, selection);
         		startActivityForResult(i, ACTIVITY_SELECT_BUILDING);
         	}
         	break;
@@ -177,13 +178,16 @@ public class Assignment3 extends MapActivity implements LocationListener {
         	if (buttonCode == TypeList.BUTTON_CANCEL){
         		
         	} else {
-        		String builCode = extras.getString(BuildingList.BUILDING_CODE);
+        		long building = extras.getLong(BuildingList.BUILDING_CODE);
+        		long type = extras.getLong(TypeList.TYPE_NAME);
+        		String builCode = this.campus.getCodeWithId(type, building);
         		Intent i = new Intent(this, GetDirections.class);
         		if (builCode != null) {
         			i.putExtra(BuildingList.BUILDING_CODE, builCode);
         			startActivityForResult(i, ACTIVITY_DIRECTIONS);
         		}
         	}
+        	break;
         case ACTIVITY_DIRECTIONS:
         	buttonCode = extras.getInt("BUTTON");
         	if (buttonCode == GetDirections.BUTTON_CANCEL) {
