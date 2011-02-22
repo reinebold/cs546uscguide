@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+
 public class ViewEvents extends ListActivity {
 	
 	public static final int BACK_ID = Menu.FIRST;

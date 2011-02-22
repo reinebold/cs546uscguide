@@ -3,6 +3,7 @@ package com.cs546group1.assignment3;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -35,6 +36,7 @@ public class Assignment3 extends MapActivity implements LocationListener {
 	private static final int ACTIVITY_DIRECTIONS = 2;
 	private static final int ACTIVITY_TEXT_DIRECTIONS = 3;
 	private static final int ACTIVITY_VIEW_EVENTS = 4;
+	private static final int ACTIVITY_CREATE = 5;
 	
 	public static final int TYPE_ID = Menu.FIRST;
 	public static final int EVENTS_ID = Menu.FIRST + 1;
@@ -68,6 +70,7 @@ public class Assignment3 extends MapActivity implements LocationListener {
         this.loc = new MyLocationOverlay(this, this.myMapView);
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
+        Speak("Hello world");
     }
     
 	/**
@@ -95,6 +98,7 @@ public class Assignment3 extends MapActivity implements LocationListener {
      */
     public boolean onOptionsItemSelected(MenuItem item) {
     	Intent i;
+    	Speak("Hello world");
         switch(item.getItemId()) {
         case TYPE_ID:
         	i = new Intent(this, TypeList.class);
@@ -155,10 +159,16 @@ public class Assignment3 extends MapActivity implements LocationListener {
      */
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        Bundle extras = intent.getExtras();
+        
+        Bundle extras = null;
+        if (intent != null) {
+        	extras = intent.getExtras();
+        }
         int buttonCode;
         switch(requestCode) {
         case ACTIVITY_VIEW_EVENTS:
+        	break;
+        case ACTIVITY_CREATE:
         	break;
         case ACTIVITY_SELECT_TYPE:
         	buttonCode = extras.getInt("BUTTON");
@@ -260,4 +270,18 @@ public class Assignment3 extends MapActivity implements LocationListener {
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		
 	}
+	
+	public void Speak(String text)
+    {
+		Intent it = new Intent(this, MySpeech.class);
+		it.putExtra("data", text);
+		try
+        {
+			startActivityForResult(it, ACTIVITY_CREATE);
+        } catch(ActivityNotFoundException e){
+        	
+        }
+    }
+
+
 }
