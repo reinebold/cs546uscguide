@@ -55,7 +55,8 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	protected MapController myMapController = null;
 	
 	
-	private boolean useTextToSpeech = false;
+	private Location currentBuilding;
+	private ArrayList<Location> locationsToVisit;
 	private ArrayList<String> namesToSay;
 	
 	private MyLocationOverlay loc;
@@ -88,7 +89,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
         tts = new TextToSpeech(this, this);
-        compass = new CompassOverlay("angle");
+        compass = new CompassOverlay("");
         //set up sensors
         mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -179,14 +180,29 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 				((PathOverlay)mapOverlays.get(i)).checkCovered(this.myLocation);
 				int colorAfter = ((PathOverlay)mapOverlays.get(i)).getColor();
 				if (colorBefore != colorAfter) {
-					if (this.useTextToSpeech){ 
-						Speak("Walk to " + this.namesToSay.get(pathOverlayIndex));
-					}
+					//speak
+					this.adjustNextBuilding(pathOverlayIndex);
+					return;
 				}
 			}
 		}
 	}
 	
+	/**
+	 * Figure out what building is the next to say and the next to compare current location to.
+	 * If we are at the end of the list, then say "finished" and stop comparing direction.
+	 * @param pathOverlayIndex
+	 */
+	private void adjustNextBuilding(int pathOverlayIndex) {
+		if (pathOverlayIndex == this.locationsToVisit.size() - 1) {
+			this.currentBuilding = null;
+			Speak("You have arrived at the destination.");
+		} else {
+			this.currentBuilding = this.locationsToVisit.get(pathOverlayIndex + 1);
+			Speak("Walk to " + this.namesToSay.get(pathOverlayIndex + 1));
+		}
+	}
+
 	/**
      * onActivityResult() - respond to completed activities.
      * Either:  add a building, give directions, or do nothing (cancel).
@@ -247,6 +263,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
         			mapOverlays.add(this.compass);
+        			this.locationsToVisit = null;
         			Intent i = new Intent(this, TextDirections.class);
         			ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
         			if (dirs != null) {
@@ -255,12 +272,12 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			startActivityForResult(i, ACTIVITY_TEXT_DIRECTIONS);
         		} else if (buttonCode == GetDirections.BUTTON_VISUAL){
         			//display visual directions
-        			useTextToSpeech = false;
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
         			mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
+        			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
         			if (points != null) {
         				GeoPoint g1 = null;
         				GeoPoint g2 = null;
@@ -278,15 +295,16 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         					}
         				}
         			}
+        			this.currentBuilding = this.locationsToVisit.get(0);
         		} else if (buttonCode == GetDirections.BUTTON_AUDIO){
         			//display visual directions
-        			useTextToSpeech = true;
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
         			mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
+        			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
         			if (points != null) {
         				GeoPoint g1 = null;
         				GeoPoint g2 = null;
@@ -304,7 +322,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         					}
         				}
         			}
-        			Speak("Walk to " + this.namesToSay.get(0));
+        			Speak("Start from " + this.namesToSay.get(0));
+        			Speak("Walk to " + this.namesToSay.get(1));
+        			this.currentBuilding = this.locationsToVisit.get(1);
         		} else {
         			//do nothing
         		}
@@ -361,8 +381,30 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		float direction = (float)event.values[0];
-		this.compass.updateMessage(Float.toString(direction));
+		//this.compass.updateMessage(Float.toString(direction));
+		if (this.currentBuilding != null) {
+			boolean facing = facingBuilding(this.myLocation, this.currentBuilding, direction);
+			if (facing == true) {
+				this.compass.updateMessage("FACING BUILDING");
+			} else {
+				this.compass.updateMessage("NOT FACING BUILDING");
+			}
+		}
 	}
+	
+	public boolean facingBuilding(Location current, Location destination, float current_angle)
+    {
+            double delta_x = destination.getLatitude() - current.getLatitude();
+            double delta_y = destination.getLongitude() - current.getLongitude();
+            double angle = Math.atan(Math.abs(delta_y/delta_x));
+            angle = angle * Math.PI / 180;
+            if (delta_x >= 0 && delta_y >=0) ;
+            else if (delta_x > 0 && delta_y < 0) angle = 360 - angle;
+            else if (delta_x < 0 && delta_y > 0) angle = 180 - angle;
+            else if (delta_x < 0 && delta_y > 0) angle = 180 + angle;
+            
+            return  Math.abs(current_angle - angle) <= 45;
+    }
 
 
 }

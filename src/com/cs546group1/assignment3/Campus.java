@@ -367,4 +367,17 @@ public class Campus {
 		}
 		return null;
 	}
+
+	public ArrayList<Location> getBuildingsToVisit(String string) {
+		// TODO Auto-generated method stub
+		ArrayList<Integer> points = this.getPoints(string);
+		ArrayList<Location> locs = new ArrayList<Location>();
+		for(int i=0; i < points.size(); i+= 2) {
+			Location l = new Location("gps");
+			l.setLatitude(points.get(i) / 1e6);
+			l.setLongitude(points.get(i + 1) / 1e6);
+			locs.add(l);
+		}
+		return locs;
+	}
 }

@@ -20,7 +20,7 @@ UI Notes:
 			* To return to the map press the options menu button.
 		- Select "Get Visual Directions" to draw the route on the map.
 			* Paths are initially drawn in green.
-			* When a user reaches within 150 microdegrees of a line segment endpoint, then that segment will turn black.
+			* When a user reaches within 300 microdegrees of a line segment endpoint, then that segment will turn black.
 			* If the building does not exist, then no new line segments will be drawn.
 		- Requesting directions will clear all line segment overlays from the map.
 

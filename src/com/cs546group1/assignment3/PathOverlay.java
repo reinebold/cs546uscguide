@@ -24,7 +24,7 @@ public class PathOverlay extends Overlay {
 	
 	private int color;
 	
-	private double DETECT_DISTANCE = 150.0;
+	private double DETECT_DISTANCE = 300.0;
 	
 	/**
 	 * A line segment starting at one geopoint and ending at another.
@@ -72,6 +72,8 @@ public class PathOverlay extends Overlay {
 		
 		mv.getProjection().toPixels(this.start, sPoint);
 		mv.getProjection().toPixels(this.end, ePoint);
+		c.drawCircle(sPoint.x, sPoint.y, 5, p);
+		c.drawCircle(ePoint.x, ePoint.y, 5, p);
 		c.drawLine(sPoint.x, sPoint.y, ePoint.x, ePoint.y, p);
 	}
 
