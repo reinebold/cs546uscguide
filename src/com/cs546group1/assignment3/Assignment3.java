@@ -64,8 +64,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private TextToSpeech tts;
 	
-	private static SensorManager mySensorManager;
-	private boolean sersorrunning;
+	private SensorManager mySensorManager;
+	
+	private CompassOverlay compass;
 	
 	
     /**
@@ -87,20 +88,11 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
         tts = new TextToSpeech(this, this);
+        compass = new CompassOverlay("angle");
         //set up sensors
+        mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> mySensors = mySensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
-     
-        if(mySensors.size() > 0){
-         mySensorManager.registerListener(this, mySensors.get(0), SensorManager.SENSOR_DELAY_NORMAL);
-         sersorrunning = true;
-//         Toast.makeText(this, "Start ORIENTATION Sensor", Toast.LENGTH_LONG).show();
-       
-        }
-        else{
-//         Toast.makeText(this, "No ORIENTATION Sensor", Toast.LENGTH_LONG).show();
-           sersorrunning = false;
-        }
+        mySensorManager.registerListener(this, mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
     }
     
 	/**
@@ -111,6 +103,10 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		final long MINIMUM_TIME_BETWEEN_UPDATE = 5000;
 		this.myLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATE,
 				MINIMUM_DISTANCECHANGE_FOR_UPDATE, this);
+	}
+	
+	void draw() {
+		
 	}
     
     /**
@@ -250,6 +246,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
+        			mapOverlays.add(this.compass);
         			Intent i = new Intent(this, TextDirections.class);
         			ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
         			if (dirs != null) {
@@ -262,6 +259,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
+        			mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			if (points != null) {
         				GeoPoint g1 = null;
@@ -286,6 +284,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
+        			mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
         			if (points != null) {
@@ -362,8 +361,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		float direction = (float)event.values[0];
-		String s = Float.toString(direction);
-		Toast.makeText(this, s, Toast.LENGTH_LONG).show();
+		this.compass.updateMessage(Float.toString(direction));
 	}
 
 
