@@ -41,6 +41,8 @@ public class Campus {
 	
 	private ArrayList<String> buildingTypes;
 	
+	private ArrayList<String> buildingNames;
+	
 	private ArrayList<ArrayList<String>> typesToBuildings;
 	
 	private Assignment3 master;
@@ -68,6 +70,7 @@ public class Campus {
 	/**
 	 * http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/GraphAlgor/breadthSearch.htm
 	 * Figure out how to get across the building by doign a simple BFS.
+	 * Returns a list of building codes.
 	 */
 	public ArrayList<String> BFS(String start, String dest) {
 		LinkedList<String> q = new LinkedList<String>();
@@ -122,6 +125,7 @@ public class Campus {
 		this.buildingLats = new ArrayList<Double>();
 		this.buildingLongs = new ArrayList<Double>();
 		this.buildingTypes = new ArrayList<String>();
+		this.buildingNames = new ArrayList<String>();
 		this.nodes = new ArrayList<ArrayList<String>>();
 		this.typesToBuildings = new ArrayList<ArrayList<String>>();
 		this.context = c;
@@ -258,9 +262,11 @@ public class Campus {
 			for(int i=0; i < lines.size(); i++) {
 				String[] parts = lines.get(i).split(":");
 				String code = parts[0];
+				String name = parts[1];
 				String lat = parts[2];
 				String lon = parts[3];
 				this.buildingCodes.add(code);
+				this.buildingNames.add(name);
 				this.buildingLats.add(Double.parseDouble(lat));
 				this.buildingLongs.add(Double.parseDouble(lon));
 			}
@@ -338,5 +344,27 @@ public class Campus {
 	public String getCodeWithId(long typeCode, long buildingCode) {
 		// TODO Auto-generated method stub
 		return this.typesToBuildings.get((int)typeCode).get((int)buildingCode);
+	}
+
+	public ArrayList<String> getNamesOfPoints(String code) {
+		ArrayList<String> answer = new ArrayList<String>();
+		ArrayList<String> steps = this.BFS(this.getNearestBuilding(), code);
+		if (steps != null) {
+			//make sure there is a valid path
+			for(int i=0; i < steps.size(); i++) {
+				answer.add(this.getBuildingWithCode(steps.get(i)));
+			}
+			return answer;
+		}
+		return null;
+	}
+
+	private String getBuildingWithCode(String code) {
+		for(int i=0; i < this.buildingCodes.size(); i++) {
+			if (this.buildingCodes.get(i).equals(code)) {
+				return this.buildingNames.get(i);
+			}
+		}
+		return null;
 	}
 }

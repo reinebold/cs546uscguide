@@ -53,6 +53,10 @@ public class PathOverlay extends Overlay {
 		}
 	}
 	
+	public int getColor() {
+		return this.color;
+	}
+	
 	/**
 	 * Draw to the display.  2D line segment in green or black connecting the two locations.
 	 */

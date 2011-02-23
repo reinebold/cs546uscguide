@@ -10,6 +10,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +31,7 @@ import com.google.android.maps.Overlay;
  * @author Jay
  *
  */
-public class Assignment3 extends MapActivity implements LocationListener {
+public class Assignment3 extends MapActivity implements LocationListener, OnInitListener {
 	
 	private static final int ACTIVITY_SELECT_TYPE = 0;
 	private static final int ACTIVITY_SELECT_BUILDING = 1;
@@ -47,9 +49,15 @@ public class Assignment3 extends MapActivity implements LocationListener {
 	protected LocationManager myLocationManager = null;
 	protected MapController myMapController = null;
 	
+	
+	private boolean useTextToSpeech = false;
+	private ArrayList<String> namesToSay;
+	
 	private MyLocationOverlay loc;
 	
 	private Campus campus;
+	
+	private TextToSpeech tts;
 	
 	
     /**
@@ -70,7 +78,7 @@ public class Assignment3 extends MapActivity implements LocationListener {
         this.loc = new MyLocationOverlay(this, this.myMapView);
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
-        Speak("Hello world");
+        tts = new TextToSpeech(this, this);
     }
     
 	/**
@@ -98,7 +106,6 @@ public class Assignment3 extends MapActivity implements LocationListener {
      */
     public boolean onOptionsItemSelected(MenuItem item) {
     	Intent i;
-    	Speak("Hello world");
         switch(item.getItemId()) {
         case TYPE_ID:
         	i = new Intent(this, TypeList.class);
@@ -145,10 +152,19 @@ public class Assignment3 extends MapActivity implements LocationListener {
 	 */
 	private void updateView(Location l) { 
 		this.myLocation = l;
+		int pathOverlayIndex = 0;
 		List<Overlay> mapOverlays = this.myMapView.getOverlays();
 		for(int i=0; i < mapOverlays.size(); i++) {
 			if (mapOverlays.get(i) instanceof PathOverlay) {
+				pathOverlayIndex += 1;
+				int colorBefore = ((PathOverlay)mapOverlays.get(i)).getColor();
 				((PathOverlay)mapOverlays.get(i)).checkCovered(this.myLocation);
+				int colorAfter = ((PathOverlay)mapOverlays.get(i)).getColor();
+				if (colorBefore != colorAfter) {
+					if (this.useTextToSpeech){ 
+						Speak("Walk to " + this.namesToSay.get(pathOverlayIndex));
+					}
+				}
 			}
 		}
 	}
@@ -171,73 +187,106 @@ public class Assignment3 extends MapActivity implements LocationListener {
         case ACTIVITY_CREATE:
         	break;
         case ACTIVITY_SELECT_TYPE:
-        	buttonCode = extras.getInt("BUTTON");
-        	if (buttonCode == TypeList.BUTTON_CANCEL) {
+        	if (extras != null && extras.containsKey("BUTTON")) {
+        		buttonCode = extras.getInt("BUTTON");
+        		if (buttonCode == TypeList.BUTTON_CANCEL) {
         		
-        	} else {
-        		long selection = extras.getLong(TypeList.TYPE_NAME);
-        		Intent i = new Intent(this, BuildingList.class);
-        		ArrayList<String> types = campus.getBuildingsWithType(selection);
-        		i.putStringArrayListExtra("buildings", types);
-        		i.putExtra(TypeList.TYPE_NAME, selection);
-        		startActivityForResult(i, ACTIVITY_SELECT_BUILDING);
+        		} else {
+        			long selection = extras.getLong(TypeList.TYPE_NAME);
+        			Intent i = new Intent(this, BuildingList.class);
+        			ArrayList<String> types = campus.getBuildingsWithType(selection);
+        			i.putStringArrayListExtra("buildings", types);
+        			i.putExtra(TypeList.TYPE_NAME, selection);
+        			startActivityForResult(i, ACTIVITY_SELECT_BUILDING);
+        		}
         	}
         	break;
         case ACTIVITY_SELECT_BUILDING:
-        	buttonCode = extras.getInt("BUTTON");
-        	if (buttonCode == TypeList.BUTTON_CANCEL){
+        	if (extras != null) {
+        		buttonCode = extras.getInt("BUTTON");
+        		if (buttonCode == TypeList.BUTTON_CANCEL){
         		
-        	} else {
-        		long building = extras.getLong(BuildingList.BUILDING_CODE);
-        		long type = extras.getLong(TypeList.TYPE_NAME);
-        		String builCode = this.campus.getCodeWithId(type, building);
-        		Intent i = new Intent(this, GetDirections.class);
-        		if (builCode != null) {
-        			i.putExtra(BuildingList.BUILDING_CODE, builCode);
-        			startActivityForResult(i, ACTIVITY_DIRECTIONS);
+        		} else {
+        			long building = extras.getLong(BuildingList.BUILDING_CODE);
+        			long type = extras.getLong(TypeList.TYPE_NAME);
+        			String builCode = this.campus.getCodeWithId(type, building);
+        			Intent i = new Intent(this, GetDirections.class);
+        			if (builCode != null) {
+        				i.putExtra(BuildingList.BUILDING_CODE, builCode);
+        				startActivityForResult(i, ACTIVITY_DIRECTIONS);
+        			}
         		}
         	}
         	break;
         case ACTIVITY_DIRECTIONS:
-        	buttonCode = extras.getInt("BUTTON");
-        	if (buttonCode == GetDirections.BUTTON_CANCEL) {
-        		//do nothing
-        	} else if (buttonCode == GetDirections.BUTTON_TEXT) {
-        		//display list of text directions
-        		List<Overlay> mapOverlays = this.myMapView.getOverlays();
-        		mapOverlays.clear();
-        		mapOverlays.add(this.loc);
-        		Intent i = new Intent(this, TextDirections.class);
-        		ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
-        		if (dirs != null) {
-        			i.putStringArrayListExtra("path", campus.getTextDirections(extras.getString(GetDirections.CODE_NAME)));
-        		}
-            	startActivityForResult(i, ACTIVITY_TEXT_DIRECTIONS);
-        	} else if (buttonCode == GetDirections.BUTTON_VISUAL){
-        		//display visual directions
-        		List<Overlay> mapOverlays = this.myMapView.getOverlays();
-        		mapOverlays.clear();
-        		mapOverlays.add(this.loc);
-        		ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
-        		if (points != null) {
-        			GeoPoint g1 = null;
-        			GeoPoint g2 = null;
-        			//draw paths
-        			if (points.size() % 2 == 0) {
-        				for(int i=0; i < points.size(); i += 2) {
-        					if (g1 == null) {
-        						g1 = new GeoPoint(points.get(i), points.get(i + 1));
-        					} else if (g2 == null) {
-        						g2 = new GeoPoint(points.get(i), points.get(i + 1));
-        						mapOverlays.add(new PathOverlay(g1, g2));
-        						g1 = g2;
-        						g2 = null;
+        	if (extras != null) {
+        		buttonCode = extras.getInt("BUTTON");
+        		if (buttonCode == GetDirections.BUTTON_CANCEL) {
+        			//do nothing
+        		} else if (buttonCode == GetDirections.BUTTON_TEXT) {
+        			//display list of text directions
+        			List<Overlay> mapOverlays = this.myMapView.getOverlays();
+        			mapOverlays.clear();
+        			mapOverlays.add(this.loc);
+        			Intent i = new Intent(this, TextDirections.class);
+        			ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
+        			if (dirs != null) {
+        				i.putStringArrayListExtra("path", campus.getTextDirections(extras.getString(GetDirections.CODE_NAME)));
+        			}
+        			startActivityForResult(i, ACTIVITY_TEXT_DIRECTIONS);
+        		} else if (buttonCode == GetDirections.BUTTON_VISUAL){
+        			//display visual directions
+        			useTextToSpeech = false;
+        			List<Overlay> mapOverlays = this.myMapView.getOverlays();
+        			mapOverlays.clear();
+        			mapOverlays.add(this.loc);
+        			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
+        			if (points != null) {
+        				GeoPoint g1 = null;
+        				GeoPoint g2 = null;
+        				//draw paths
+        				if (points.size() % 2 == 0) {
+        					for(int i=0; i < points.size(); i += 2) {
+        						if (g1 == null) {
+        							g1 = new GeoPoint(points.get(i), points.get(i + 1));
+        						} else if (g2 == null) {
+        							g2 = new GeoPoint(points.get(i), points.get(i + 1));
+        							mapOverlays.add(new PathOverlay(g1, g2));
+        							g1 = g2;
+        							g2 = null;
+        						}
         					}
         				}
         			}
+        		} else if (buttonCode == GetDirections.BUTTON_AUDIO){
+        			//display visual directions
+        			useTextToSpeech = true;
+        			List<Overlay> mapOverlays = this.myMapView.getOverlays();
+        			mapOverlays.clear();
+        			mapOverlays.add(this.loc);
+        			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
+        			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
+        			if (points != null) {
+        				GeoPoint g1 = null;
+        				GeoPoint g2 = null;
+        				//draw paths
+        				if (points.size() % 2 == 0) {
+        					for(int i=0; i < points.size(); i += 2) {
+        						if (g1 == null) {
+        							g1 = new GeoPoint(points.get(i), points.get(i + 1));
+        						} else if (g2 == null) {
+        							g2 = new GeoPoint(points.get(i), points.get(i + 1));
+        							mapOverlays.add(new PathOverlay(g1, g2));
+        							g1 = g2;
+        							g2 = null;
+        						}
+        					}
+        				}
+        			}
+        			Speak("Walk to " + this.namesToSay.get(0));
+        		} else {
+        			//do nothing
         		}
-        	} else {
-        		//do nothing
         	}
         	break;
         }
@@ -273,15 +322,22 @@ public class Assignment3 extends MapActivity implements LocationListener {
 	
 	public void Speak(String text)
     {
-		Intent it = new Intent(this, MySpeech.class);
-		it.putExtra("data", text);
-		try
-        {
-			startActivityForResult(it, ACTIVITY_CREATE);
-        } catch(ActivityNotFoundException e){
-        	
-        }
+		tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+		//Intent it = new Intent(this, MySpeech.class);
+		//it.putExtra("data", text);
+		//try
+        //{
+		//	startActivityForResult(it, ACTIVITY_CREATE);
+        //} catch(ActivityNotFoundException e){
+        //	
+        //}
     }
+
+	@Override
+	public void onInit(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }
