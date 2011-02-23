@@ -6,6 +6,10 @@ import java.util.List;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,6 +19,7 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.cs546group1.assignment3.R;
 import com.google.android.maps.GeoPoint;
@@ -31,7 +36,7 @@ import com.google.android.maps.Overlay;
  * @author Jay
  *
  */
-public class Assignment3 extends MapActivity implements LocationListener, OnInitListener {
+public class Assignment3 extends MapActivity implements LocationListener, OnInitListener, SensorEventListener {
 	
 	private static final int ACTIVITY_SELECT_TYPE = 0;
 	private static final int ACTIVITY_SELECT_BUILDING = 1;
@@ -59,6 +64,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private TextToSpeech tts;
 	
+	private static SensorManager mySensorManager;
+	private boolean sersorrunning;
+	
 	
     /**
      * Create the map view and set up gps for refresh.
@@ -79,6 +87,20 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
         tts = new TextToSpeech(this, this);
+        //set up sensors
+    	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        List<Sensor> mySensors = mySensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
+     
+        if(mySensors.size() > 0){
+         mySensorManager.registerListener(this, mySensors.get(0), SensorManager.SENSOR_DELAY_NORMAL);
+         sersorrunning = true;
+//         Toast.makeText(this, "Start ORIENTATION Sensor", Toast.LENGTH_LONG).show();
+       
+        }
+        else{
+//         Toast.makeText(this, "No ORIENTATION Sensor", Toast.LENGTH_LONG).show();
+           sersorrunning = false;
+        }
     }
     
 	/**
@@ -323,20 +345,25 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	public void Speak(String text)
     {
 		tts.speak(text, TextToSpeech.QUEUE_ADD, null);
-		//Intent it = new Intent(this, MySpeech.class);
-		//it.putExtra("data", text);
-		//try
-        //{
-		//	startActivityForResult(it, ACTIVITY_CREATE);
-        //} catch(ActivityNotFoundException e){
-        //	
-        //}
     }
 
 	@Override
 	public void onInit(int arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		float direction = (float)event.values[0];
+		String s = Float.toString(direction);
+		Toast.makeText(this, s, Toast.LENGTH_LONG).show();
 	}
 
 
