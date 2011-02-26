@@ -99,7 +99,6 @@ public class ViewEvents extends ListActivity {
         bundle.putString("summary", this.events.get(position).getSummary());
         setResult(RESULT_OK, i);
         i.putExtras(bundle);
-        startActivityForResult(i, ACTIVITY_VIEW_EVENT); 
         finish();
     }
     
@@ -116,20 +115,22 @@ public class ViewEvents extends ListActivity {
         }
 
 
-        for(int i=0; i < content.size(); i++) {
-        	if (content.get(i).contains("<a class=\"feed_title\"")) {
-        		String name = content.get(i);
-        		name = findContent(name, "a");
-        		String date = content.get(i + 2);
-        		date = findContent(date, "div");
-        		String summary = content.get(i + 4);
-        		summary = findContent(summary, "p");
-        		System.out.println(name);
-        		System.out.println(date);
-        		System.out.println(summary);
-        		System.out.println();
-        		Event e = new Event(name, date, summary);
-        		this.events.add(e);
+        if (content != null) {
+        	for(int i=0; i < content.size(); i++) {
+        		if (content.get(i).contains("<a class=\"feed_title\"")) {
+        			String name = content.get(i);
+        			name = findContent(name, "a");
+        			String date = content.get(i + 2);
+        			date = findContent(date, "div");
+        			String summary = content.get(i + 4);
+        			summary = findContent(summary, "p");
+        			System.out.println(name);
+        			System.out.println(date);
+        			System.out.println(summary);
+        			System.out.println();
+        			Event e = new Event(name, date, summary);
+        			this.events.add(e);
+        		}
         	}
         }
     }

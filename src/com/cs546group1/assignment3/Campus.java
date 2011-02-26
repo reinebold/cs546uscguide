@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 import com.cs546group1.assignment3.R;
@@ -304,7 +306,9 @@ public class Campus {
 				//String desc = descLine.substring(10, descLine.length() - 2);
 				String typeLine = lines.get(i + 10);
 				String type = typeLine.substring(9, typeLine.length() - 2);
-				this.insertBuildingOfType(code, type);
+				if (this.buildingCodes.contains(code)) {
+					this.insertBuildingOfType(code, type);
+				}
 			}
 		}
 	}
@@ -323,13 +327,7 @@ public class Campus {
 			//look for the right bin
 			if (getTypeFromIndex(i).equals(type)) {
 				//see if its already in the bin
-				boolean found = false;
-				for(int j=0; j < typesToBuildings.get(i).size(); j++) {
-					if (typesToBuildings.get(i).get(j).equals(code)) {
-						found = true;
-					}
-				}
-				if (found == false) {
+				if (! typesToBuildings.get(i).contains(code)) {
 					typesToBuildings.get(i).add(code);
 				}
 			}
@@ -337,13 +335,43 @@ public class Campus {
 	}
 
 	public ArrayList<String> getBuildingsWithType(long selection) {
-		// TODO Auto-generated method stub
-		return this.typesToBuildings.get((int)selection);
+		//sorted in order of nearest distance to point l
+		ArrayList<String> unsortedList = new ArrayList<String>();
+		for(int i=0; i < this.typesToBuildings.get((int)selection).size(); i++) {
+			unsortedList.add(this.typesToBuildings.get((int)selection).get(i));
+		}
+		ArrayList<String> answer = new ArrayList<String>();
+		
+		while (unsortedList.size() > 0) {
+		    double shortestDistance = getDistance(unsortedList.get(0));
+		    String shortest = unsortedList.get(0);
+		    for(int i=0; i < unsortedList.size(); i++) {
+		    	if (getDistance(unsortedList.get(i)) < shortestDistance) {
+		    		shortest = unsortedList.get(i);
+		    		shortestDistance = getDistance(unsortedList.get(i));
+		    	}
+		    }
+		    answer.add(shortest);
+		    unsortedList.remove(shortest);
+		}
+		return answer;
+	}
+	
+	public double getDistance(String code) {
+		Location l = this.master.myLocation;
+		int i = this.getIndex(code);
+		double currentLat = this.buildingLats.get(i);
+		double currentLon = this.buildingLongs.get(i);
+		double currentDist = Math.sqrt(Math.pow(currentLat - l.getLatitude(), 2) + Math.pow(currentLon - l.getLongitude(), 2));
+		return currentDist;
+		
 	}
 
 	public String getCodeWithId(long typeCode, long buildingCode) {
-		// TODO Auto-generated method stub
-		return this.typesToBuildings.get((int)typeCode).get((int)buildingCode);
+		// l = where the building was found from
+		ArrayList<String> buildings = this.getBuildingsWithType(typeCode);
+		return buildings.get((int)buildingCode);
+		//return this.typesToBuildings.get((int)typeCode).get((int)buildingCode);
 	}
 
 	public ArrayList<String> getNamesOfPoints(String code) {
@@ -369,7 +397,6 @@ public class Campus {
 	}
 
 	public ArrayList<Location> getBuildingsToVisit(String string) {
-		// TODO Auto-generated method stub
 		ArrayList<Integer> points = this.getPoints(string);
 		ArrayList<Location> locs = new ArrayList<Location>();
 		for(int i=0; i < points.size(); i+= 2) {
@@ -380,4 +407,5 @@ public class Campus {
 		}
 		return locs;
 	}
+
 }

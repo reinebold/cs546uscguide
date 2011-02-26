@@ -18,6 +18,7 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -25,6 +26,8 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
+
+import java.util.Calendar;
 
 
 
@@ -37,7 +40,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private static final int ACTIVITY_SELECT_TYPE = 0;
 	private static final int ACTIVITY_SELECT_BUILDING = 1;
-	private static final int ACTIVITY_DIRECTIONS = 2;
+	private static final int ACTIVITY_DIRECTIONS = 2; 
 	private static final int ACTIVITY_TEXT_DIRECTIONS = 3;
 	private static final int ACTIVITY_VIEW_EVENTS = ViewEvents.ACTIVITY_VIEW_EVENT;
 	private static final int ACTIVITY_CREATE = 5;
@@ -66,7 +69,11 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private SensorManager mySensorManager;
 	
-	private CompassOverlay compass;
+	//private CompassOverlay compass;
+	
+	private Calendar myCalendar;
+	
+	private long lastTime = 0;
 	
 	
     /**
@@ -79,6 +86,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.myMapView.setClickable(true);
         this.setContentView(myMapView);
         this.myMapController = this.myMapView.getController();
+        this.myCalendar = Calendar.getInstance();
         this.campus = new Campus(this, this);
         this.myLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         this.gpsRefresh();
@@ -93,9 +101,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
 		//make gps overlay
-        compass = new CompassOverlay("");
+        //compass = new CompassOverlay("");
         //set up sensors
-        mapOverlays.add(this.compass);
+        //mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mySensorManager.registerListener(this, mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
         
@@ -105,7 +113,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
     }
     
 	/**
-	 * Set the refersh rate:  25m change or 5000 millisecond timeout
+	 * Set the refresh rate:  25m change or 5000 millisecond timeout
 	 */
 	private void gpsRefresh() {
 		final float MINIMUM_DISTANCECHANGE_FOR_UPDATE = 25;
@@ -229,6 +237,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         case ACTIVITY_VIEW_EVENTS:
         	buttonCode = extras.getInt("BUTTON");
     		if (buttonCode == TypeList.BUTTON_CANCEL) {
+    			
     		} else {
     			Intent viewIntent = new Intent(this, EventView.class);
     			viewIntent.putExtra("name", extras.getString("name"));
@@ -284,6 +293,8 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         	}
         	break;
         case ACTIVITY_DIRECTIONS:
+        	this.myCalendar = Calendar.getInstance();
+        	this.lastTime = this.myCalendar.getTimeInMillis();
         	if (extras != null) {
         		buttonCode = extras.getInt("BUTTON");
         		if (buttonCode == GetDirections.BUTTON_CANCEL) {
@@ -293,7 +304,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			this.locationsToVisit = null;
         			Intent i = new Intent(this, TextDirections.class);
         			ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
@@ -306,7 +317,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
         			if (points != null) {
@@ -332,7 +343,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
         			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
@@ -418,10 +429,17 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		//this.compass.updateMessage(Float.toString(direction));
 		if (this.currentBuilding != null) {
 			boolean facing = facingBuilding(this.myLocation, this.currentBuilding, direction);
-			if (facing == true) {
-				this.compass.updateMessage("FACING BUILDING");
-			} else {
-				this.compass.updateMessage("NOT FACING BUILDING");
+			this.myCalendar = Calendar.getInstance();
+			long distance = this.myCalendar.getTimeInMillis() - this.lastTime;
+			if (distance > 2000) {
+				this.lastTime = this.myCalendar.getTimeInMillis();
+				if (facing == true) {
+					Toast.makeText(this, "FACING BUILDING", Toast.LENGTH_SHORT).show();
+					//this.compass.updateMessage("FACING BUILDING");
+				} else {
+					Toast.makeText(this, "NOT FACING BUILDING", Toast.LENGTH_SHORT).show();
+					//this.compass.updateMessage("NOT FACING BUILDING");
+				}
 			}
 		}
 	}
