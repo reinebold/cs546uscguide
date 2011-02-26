@@ -3,7 +3,6 @@ package com.cs546group1.assignment3;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -19,9 +18,7 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
-import com.cs546group1.assignment3.R;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -42,8 +39,10 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	private static final int ACTIVITY_SELECT_BUILDING = 1;
 	private static final int ACTIVITY_DIRECTIONS = 2;
 	private static final int ACTIVITY_TEXT_DIRECTIONS = 3;
-	private static final int ACTIVITY_VIEW_EVENTS = 4;
+	private static final int ACTIVITY_VIEW_EVENTS = ViewEvents.ACTIVITY_VIEW_EVENT;
 	private static final int ACTIVITY_CREATE = 5;
+	private static final int MY_DATA_CHECK_CODE = 6;
+	private static final int VIEW_EVENT_DETAILS = EventView.VIEW_EVENT_DETAILS;
 	
 	public static final int TYPE_ID = Menu.FIRST;
 	public static final int EVENTS_ID = Menu.FIRST + 1;
@@ -63,7 +62,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private Campus campus;
 	
-	private TextToSpeech tts;
+	private TextToSpeech tts = null;
 	
 	private SensorManager mySensorManager;
 	
@@ -88,12 +87,21 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.loc = new MyLocationOverlay(this, this.myMapView);
         this.loc.enableMyLocation();
         mapOverlays.add(this.loc);
-        tts = new TextToSpeech(this, this);
+        
+        //install or turn on tts
+        Intent checkIntent = new Intent();
+		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
+		//make gps overlay
         compass = new CompassOverlay("");
         //set up sensors
         mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mySensorManager.registerListener(this, mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
+        
+        myMapController.stopPanning();
+        GeoPoint p = new GeoPoint((int) (34.0217094421 * 1E6), (int) (-118.2828216553 * 1E6));
+        myMapController.animateTo(p);
     }
     
 	/**
@@ -216,7 +224,30 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         }
         int buttonCode;
         switch(requestCode) {
+        case VIEW_EVENT_DETAILS:
+        	break;
         case ACTIVITY_VIEW_EVENTS:
+        	buttonCode = extras.getInt("BUTTON");
+    		if (buttonCode == TypeList.BUTTON_CANCEL) {
+    		} else {
+    			Intent viewIntent = new Intent(this, EventView.class);
+    			viewIntent.putExtra("name", extras.getString("name"));
+    			viewIntent.putExtra("date", extras.getString("date"));
+    			viewIntent.putExtra("summary", extras.getString("summary"));
+    			startActivityForResult(viewIntent, VIEW_EVENT_DETAILS);
+    		}
+        	break;
+        case MY_DATA_CHECK_CODE:
+    		if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+    			// success, create the TTS instance
+    			tts = new TextToSpeech(this, this);
+    		} 
+    		else {
+    			// missing data, install it
+    			Intent installIntent = new Intent();
+    			installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+    			startActivity(installIntent);
+    		}
         	break;
         case ACTIVITY_CREATE:
         	break;
@@ -227,11 +258,11 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         		
         		} else {
         			long selection = extras.getLong(TypeList.TYPE_NAME);
-        			Intent i = new Intent(this, BuildingList.class);
+        			Intent inte = new Intent(this, BuildingList.class);
         			ArrayList<String> types = campus.getBuildingsWithType(selection);
-        			i.putStringArrayListExtra("buildings", types);
-        			i.putExtra(TypeList.TYPE_NAME, selection);
-        			startActivityForResult(i, ACTIVITY_SELECT_BUILDING);
+        			inte.putStringArrayListExtra("buildings", types);
+        			inte.putExtra(TypeList.TYPE_NAME, selection);
+        			startActivityForResult(inte, ACTIVITY_SELECT_BUILDING);
         		}
         	}
         	break;
@@ -323,15 +354,16 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         				}
         			}
         			Speak("Start from " + this.namesToSay.get(0));
-        			Speak("Walk to " + this.namesToSay.get(1));
-        			this.currentBuilding = this.locationsToVisit.get(1);
+        			if (this.namesToSay.size() > 1) {
+        				Speak("Walk to " + this.namesToSay.get(1));
+        				this.currentBuilding = this.locationsToVisit.get(1);
+        			}
         		} else {
         			//do nothing
         		}
         	}
         	break;
         }
-        
     }
 
     /**
@@ -363,7 +395,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	public void Speak(String text)
     {
-		tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+		if (this.tts != null) {
+			tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+		}
     }
 
 	@Override

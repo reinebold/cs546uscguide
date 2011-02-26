@@ -25,6 +25,8 @@ public class ViewEvents extends ListActivity {
 	
 	public static final int BACK_ID = Menu.FIRST;
 	
+	public static final int ACTIVITY_VIEW_EVENT = 11;
+	
 	/**
 	 * onCreate() - make a new GUI to view events
 	 */
@@ -72,15 +74,16 @@ public class ViewEvents extends ListActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
     	Bundle bundle = new Bundle();
     	Intent mIntent = new Intent();
-        mIntent.putExtras(bundle);
-        setResult(RESULT_OK, mIntent);
         switch(item.getItemId()) {
-        case BACK_ID:
-        	finish();
-        	return true;
+        	case BACK_ID:
+        		bundle.putInt("BUTTON", TypeList.BUTTON_CANCEL);
+        		mIntent.putExtras(bundle);
+        		setResult(RESULT_OK, mIntent);
+        		finish();
+        		return true;
         }
         finish();
-        return true;   
+        return true; 
     }
     
     /**
@@ -89,10 +92,15 @@ public class ViewEvents extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         Intent i = new Intent(this, EventView.class);
-        i.putExtra("name", this.events.get(position).getName());
-        i.putExtra("date", this.events.get(position).getDate());
-        i.putExtra("summary", this.events.get(position).getSummary());
-        //startActivityForResult(i, ACTIVITY_EDIT); 
+        Bundle bundle = new Bundle();
+        bundle.putInt("BUTTON", TypeList.BUTTON_SELECTED);
+        bundle.putString("name", this.events.get(position).getName());
+        bundle.putString("date", this.events.get(position).getDate());
+        bundle.putString("summary", this.events.get(position).getSummary());
+        setResult(RESULT_OK, i);
+        i.putExtras(bundle);
+        startActivityForResult(i, ACTIVITY_VIEW_EVENT); 
+        finish();
     }
     
     public void accessWeb(){
@@ -111,20 +119,38 @@ public class ViewEvents extends ListActivity {
         for(int i=0; i < content.size(); i++) {
         	if (content.get(i).contains("<a class=\"feed_title\"")) {
         		String name = content.get(i);
-        		name = name.substring(name.indexOf('>') + 1, name.indexOf('<', name.indexOf('>')));
+        		name = findContent(name, "a");
         		String date = content.get(i + 2);
-        		date = date.substring(date.indexOf('>') + 1, date.indexOf('<', date.indexOf('>')));
+        		date = findContent(date, "div");
         		String summary = content.get(i + 4);
-        		summary = summary.substring(summary.indexOf('>') + 1, summary.indexOf('<', summary.indexOf('>')));
-        		//System.out.println(name);
-        		//System.out.println(date);
-        		//System.out.println(summary);
-        		//if (!name.equals("")) {
-        			Event e = new Event(name, date, summary);
-        			this.events.add(e);
-        		//}
+        		summary = findContent(summary, "p");
+        		System.out.println(name);
+        		System.out.println(date);
+        		System.out.println(summary);
+        		System.out.println();
+        		Event e = new Event(name, date, summary);
+        		this.events.add(e);
         	}
         }
     }
-
+    
+	public static String findContent(String oneLine, String simbol)
+	{
+		int start = oneLine.indexOf(">", oneLine.indexOf("<" + simbol) + 1) + 1;
+		int end = oneLine.indexOf("</" + simbol);
+		String result = oneLine.substring(start, end);
+		
+		for(;;)
+		{
+			int deleteStart = result.indexOf("<");
+			if (deleteStart == -1) break;
+			int deleteEnd = result.indexOf(">", deleteStart + 1);
+			String text1 = new String(""), text2 = new String("");
+			if (deleteStart >1) text1 = result.substring(0, deleteStart - 1);
+			if (deleteEnd + 1 < result.length()) text2 = result.substring(deleteEnd + 1, result.length());
+			result = text1 + text2;
+		}
+		
+		return result;
+	}
 }

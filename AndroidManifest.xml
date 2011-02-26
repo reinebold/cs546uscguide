@@ -20,6 +20,6 @@
 		<activity android:name="com.cs546group1.assignment3.TypeList"/>
 		<activity android:name="com.cs546group1.assignment3.BuildingList"/>
 		<activity android:name="com.cs546group1.assignment3.ViewEvents"/>
-		<activity android:name="com.cs546group1.assignment3.MySpeech"/>
+		<activity android:name="com.cs546group1.assignment3.EventView"/>
     </application>
 </manifest> 
