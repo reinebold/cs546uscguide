@@ -40,6 +40,7 @@ public class PathOverlay extends Overlay {
 	/**
 	 * Determine if the location is close to the endpoint.  If it is, change the color to black.
 	 * Rationale:  the user has already taken the path.
+	 * Also draw a larger dot for the endpoints.
 	 * @param l
 	 */
 	public void checkCovered(Location l){
@@ -53,6 +54,10 @@ public class PathOverlay extends Overlay {
 		}
 	}
 	
+	/**
+	 * Return the color of the path.
+	 * @return
+	 */
 	public int getColor() {
 		return this.color;
 	}

@@ -9,6 +9,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+/**
+ * UI for viewing details of an event.
+ * @author Jay
+ *
+ */
 public class EventView extends Activity {
 	
 	public static final int BACK_ID = Menu.FIRST;
@@ -20,6 +25,9 @@ public class EventView extends Activity {
 	private TextView mSummary;
 	
 	
+	/**
+	 * Create the UI.
+	 */
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Bundle extras = getIntent().getExtras();

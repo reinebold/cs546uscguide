@@ -6,6 +6,11 @@ import android.graphics.Paint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
+/**
+ * Unused class in final project.  We were experimenting with compass overlays.
+ * @author Jay
+ *
+ */
 public class CompassOverlay extends Overlay {
 	
 	private String myMessage;

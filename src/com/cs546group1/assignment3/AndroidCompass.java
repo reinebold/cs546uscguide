@@ -10,6 +10,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
+/**
+ * Old class to help us learn how to use Android's compass.  Not used in the project.
+ * @author Jay
+ *
+ */
 public class AndroidCompass extends Activity {
 
 private static SensorManager mySensorManager;

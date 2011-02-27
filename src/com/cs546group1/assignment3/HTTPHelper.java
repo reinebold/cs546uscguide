@@ -8,6 +8,11 @@ import java.util.ArrayList;
 
 import org.apache.http.HttpResponse;
 
+/**
+ * Class to read the lines from an http request and return them as an arraylist.
+ * @author Jay
+ *
+ */
 public class HTTPHelper {
    
     public static ArrayList<String> request(HttpResponse response){

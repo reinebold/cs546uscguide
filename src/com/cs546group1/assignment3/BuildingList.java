@@ -12,6 +12,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
+/**
+ * List all the possible buildings you can go to given a type.
+ * @author Jay
+ *
+ */
 public class BuildingList extends ListActivity {
 	
 	public static final int SELECT_ID = Menu.FIRST;	

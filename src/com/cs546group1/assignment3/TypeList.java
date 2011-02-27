@@ -17,6 +17,11 @@ import android.widget.ListView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 
+/**
+ * List all the types of buildings for the user to select one.
+ * @author Jay
+ *
+ */
 public class TypeList extends ListActivity {
 	
 private ArrayList<String> path;
@@ -33,7 +38,7 @@ private ArrayList<String> path;
 	private ArrayList<String> types;
 	
 	/**
-	 * onCreate() - make a new GUI to view directions
+	 * onCreate() - make a new GUI to view types
 	 */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +69,7 @@ private ArrayList<String> path;
     }
     
     /**
-     * onListItemClick() - when the user clicks a building, show details in the building edit window.
+     * onListItemClick() - when the user clicks a type display all the buildings of that type.
      */
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);

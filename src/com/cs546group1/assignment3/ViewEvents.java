@@ -19,6 +19,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+/**
+ * Access the USC webpage and list all events.
+ * @author Jay
+ *
+ */
 public class ViewEvents extends ListActivity {
 	
 	private ArrayList<Event> events;
@@ -135,23 +140,21 @@ public class ViewEvents extends ListActivity {
         }
     }
     
-	public static String findContent(String oneLine, String simbol)
-	{
-		int start = oneLine.indexOf(">", oneLine.indexOf("<" + simbol) + 1) + 1;
-		int end = oneLine.indexOf("</" + simbol);
-		String result = oneLine.substring(start, end);
-		
-		for(;;)
-		{
-			int deleteStart = result.indexOf("<");
-			if (deleteStart == -1) break;
-			int deleteEnd = result.indexOf(">", deleteStart + 1);
-			String text1 = new String(""), text2 = new String("");
-			if (deleteStart >1) text1 = result.substring(0, deleteStart - 1);
-			if (deleteEnd + 1 < result.length()) text2 = result.substring(deleteEnd + 1, result.length());
-			result = text1 + text2;
-		}
-		
-		return result;
-	}
+    public static String findContent(String oneLine, String simbol)
+    {
+    	int start = oneLine.indexOf(">", oneLine.indexOf("<" + simbol) + 1) + 1;
+    	int end = oneLine.indexOf("</" + simbol);
+    	String result = oneLine.substring(start, end);
+    	for(;;)
+    	{
+    		int deleteStart = result.indexOf("<");
+    		if (deleteStart == -1) break;
+    		int deleteEnd = result.indexOf(">", deleteStart + 1);
+    		String text1 = new String(""), text2 = new String("");
+    		if (deleteStart >1) text1 = result.substring(0, deleteStart);
+    		if (deleteEnd + 1 < result.length()) text2 = result.substring(deleteEnd + 1, result.length());
+    		result = text1 + text2;
+    	}
+    	return result;
+    }
 }

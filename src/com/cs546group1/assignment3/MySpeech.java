@@ -6,6 +6,12 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 
+/**
+ * Unused class in final project.
+ * We were experimenting with how text to speech works here.
+ * @author Jay
+ *
+ */
 public class MySpeech extends Activity implements OnInitListener{
 private int MY_DATA_CHECK_CODE = 0;
 	

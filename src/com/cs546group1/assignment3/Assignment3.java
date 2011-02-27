@@ -69,7 +69,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private SensorManager mySensorManager;
 	
-	private CompassOverlay compass;
+	//private CompassOverlay compass;
 	
 	private Calendar myCalendar;
 	
@@ -102,9 +102,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
 		//make gps overlay
-        compass = new CompassOverlay("");
+        //compass = new CompassOverlay("");
         //set up sensors
-        mapOverlays.add(this.compass);
+        //mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mySensorManager.registerListener(this, mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
         
@@ -123,24 +123,30 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 				MINIMUM_DISTANCECHANGE_FOR_UPDATE, this);
 	}
 	
+	/**
+	 * When the user closes the app, stop going along the path.
+	 */
 	protected void onStop() {
 		super.onStop();
 		this.currentBuilding = null;
 		List<Overlay> mapOverlays = this.myMapView.getOverlays();
 		mapOverlays.clear();
 		mapOverlays.add(this.loc);
-		mapOverlays.add(this.compass);
+		//mapOverlays.add(this.compass);
 		this.namesToSay = null;
 		this.locationsToVisit = null;
 	}
 
 	
+	/**
+	 * Draw method.
+	 */
 	void draw() {
 		
 	}
     
     /**
-     * onCreateOptionsMenu() - allow the user to add buildings or get directions from options menu.
+     * onCreateOptionsMenu() - allow the user to view 
      */
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean result = super.onCreateOptionsMenu(menu);
@@ -240,7 +246,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 
 	/**
      * onActivityResult() - respond to completed activities.
-     * Either:  add a building, give directions, or do nothing (cancel).
+     * Either:  view events or find directions.
      */
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
@@ -323,7 +329,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			this.locationsToVisit = null;
         			this.namesToSay = null;
         			this.currentBuilding = null;
@@ -338,7 +344,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = null;
@@ -370,7 +376,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			mapOverlays.add(this.compass);
+        			//mapOverlays.add(this.compass);
         			this.currentBuilding = null;
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
@@ -434,6 +440,10 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		
 	}
 	
+	/**
+	 * Send a string to the text to speech program.
+	 * @param text
+	 */
 	public void Speak(String text)
     {
 		if (this.tts != null) {
@@ -441,22 +451,28 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		}
     }
 
-	@Override
+	/**
+	 * Method not implemented.
+	 */
 	public void onInit(int arg0) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	/**
+	 * Method not implemented.
+	 */
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	/**
+	 * Update where we think the user is facing.
+	 */
 	public void onSensorChanged(SensorEvent event) {
 		float direction = (float)event.values[0];
-		this.compass.updateMessage(Float.toString(direction));
+		//this.compass.updateMessage(Float.toString(direction));
 		if (this.currentBuilding != null) {
 			boolean facing = facingBuilding(this.myLocation, this.currentBuilding, direction);
 			this.myCalendar = Calendar.getInstance();
@@ -475,6 +491,14 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		}
 	}
 	
+	/**
+	 * Given a facing, a building's location, and our location, determine if the user is facing the building or not.
+	 * True = yes, False = no.
+	 * @param current
+	 * @param destination
+	 * @param current_angle
+	 * @return
+	 */
 	public boolean facingBuilding(Location current, Location destination, float current_angle)
 	   {
 	           double delta_y = destination.getLatitude() - current.getLatitude();

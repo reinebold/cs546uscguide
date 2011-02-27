@@ -277,6 +277,9 @@ public class Campus {
 		}
 	}
 	
+	/**
+	 * Get the building types from buildingsdata.js.
+	 */
 	private void parseBuildingTypes() {
 		ArrayList<String> lines = new ArrayList<String>();
 		try {
@@ -313,10 +316,20 @@ public class Campus {
 		}
 	}
 	
+	/**
+	 * Return a building type given its position in the type list.
+	 * @param index
+	 * @return
+	 */
 	private String getTypeFromIndex(int index) {
 		return this.buildingTypes.get(index);
 	}
 
+	/**
+	 * Record type information for a building.
+	 * @param code
+	 * @param type
+	 */
 	private void insertBuildingOfType(String code, String type) {
 		if(! this.buildingTypes.contains(type)) {
 			this.buildingTypes.add(type);
@@ -334,6 +347,11 @@ public class Campus {
 		}
 	}
 
+	/**
+	 * Return building codes in list corresponding to a type sorted by nearest position to the user's location.
+	 * @param selection
+	 * @return
+	 */
 	public ArrayList<String> getBuildingsWithType(long selection) {
 		//sorted in order of nearest distance to point l
 		ArrayList<String> unsortedList = new ArrayList<String>();
@@ -357,6 +375,11 @@ public class Campus {
 		return answer;
 	}
 	
+	/**
+	 * Return the distance of a building from the user's location.
+	 * @param code
+	 * @return
+	 */
 	public double getDistance(String code) {
 		Location l = this.master.myLocation;
 		int i = this.getIndex(code);
@@ -367,6 +390,12 @@ public class Campus {
 		
 	}
 
+	/**
+	 * Return the building code given a type and a position in the type list.
+	 * @param typeCode
+	 * @param buildingCode
+	 * @return
+	 */
 	public String getCodeWithId(long typeCode, long buildingCode) {
 		// l = where the building was found from
 		ArrayList<String> buildings = this.getBuildingsWithType(typeCode);
@@ -374,6 +403,11 @@ public class Campus {
 		//return this.typesToBuildings.get((int)typeCode).get((int)buildingCode);
 	}
 
+	/**
+	 * Return the name of the list of buildings to traverse given a code.
+	 * @param code
+	 * @return
+	 */
 	public ArrayList<String> getNamesOfPoints(String code) {
 		ArrayList<String> answer = new ArrayList<String>();
 		ArrayList<String> steps = this.BFS(this.getNearestBuilding(), code);
@@ -387,6 +421,11 @@ public class Campus {
 		return null;
 	}
 
+	/**
+	 * Return the building name given a code.
+	 * @param code
+	 * @return
+	 */
 	private String getBuildingWithCode(String code) {
 		for(int i=0; i < this.buildingCodes.size(); i++) {
 			if (this.buildingCodes.get(i).equals(code)) {
@@ -396,6 +435,11 @@ public class Campus {
 		return null;
 	}
 
+	/**
+	 * Return a list of locations to traverse when trying to get a building code.
+	 * @param string
+	 * @return
+	 */
 	public ArrayList<Location> getBuildingsToVisit(String string) {
 		ArrayList<Integer> points = this.getPoints(string);
 		ArrayList<Location> locs = new ArrayList<Location>();
