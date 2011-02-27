@@ -69,7 +69,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	
 	private SensorManager mySensorManager;
 	
-	//private CompassOverlay compass;
+	private CompassOverlay compass;
 	
 	private Calendar myCalendar;
 	
@@ -101,9 +101,9 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
 		//make gps overlay
-        //compass = new CompassOverlay("");
+        compass = new CompassOverlay("");
         //set up sensors
-        //mapOverlays.add(this.compass);
+        mapOverlays.add(this.compass);
     	mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mySensorManager.registerListener(this, mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
         
@@ -121,6 +121,18 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 		this.myLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATE,
 				MINIMUM_DISTANCECHANGE_FOR_UPDATE, this);
 	}
+	
+	protected void onStop() {
+		super.onStop();
+		this.currentBuilding = null;
+		List<Overlay> mapOverlays = this.myMapView.getOverlays();
+		mapOverlays.clear();
+		mapOverlays.add(this.loc);
+		mapOverlays.add(this.compass);
+		this.namesToSay = null;
+		this.locationsToVisit = null;
+	}
+
 	
 	void draw() {
 		
@@ -212,10 +224,14 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	private void adjustNextBuilding(int pathOverlayIndex) {
 		if (pathOverlayIndex == this.locationsToVisit.size() - 1) {
 			this.currentBuilding = null;
-			Speak("You have arrived at the destination.");
+			if (this.namesToSay != null) {
+				Speak("You have arrived at the destination.");
+			}
 		} else {
 			this.currentBuilding = this.locationsToVisit.get(pathOverlayIndex + 1);
-			Speak("Walk to " + this.namesToSay.get(pathOverlayIndex + 1));
+			if (this.namesToSay != null) {
+				Speak("Walk to " + this.namesToSay.get(pathOverlayIndex + 1));
+			}
 		}
 	}
 
@@ -293,8 +309,8 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         	}
         	break;
         case ACTIVITY_DIRECTIONS:
-        	this.myCalendar = Calendar.getInstance();
-        	this.lastTime = this.myCalendar.getTimeInMillis();
+        	//this.myCalendar = Calendar.getInstance();
+        	//this.lastTime = this.myCalendar.getTimeInMillis();
         	if (extras != null) {
         		buttonCode = extras.getInt("BUTTON");
         		if (buttonCode == GetDirections.BUTTON_CANCEL) {
@@ -304,8 +320,10 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			//mapOverlays.add(this.compass);
+        			mapOverlays.add(this.compass);
         			this.locationsToVisit = null;
+        			this.namesToSay = null;
+        			this.currentBuilding = null;
         			Intent i = new Intent(this, TextDirections.class);
         			ArrayList<String> dirs = campus.getTextDirections(extras.getString(GetDirections.CODE_NAME));
         			if (dirs != null) {
@@ -317,9 +335,11 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			//mapOverlays.add(this.compass);
+        			mapOverlays.add(this.compass);
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
+        			this.namesToSay = null;
+        			this.currentBuilding = null;
         			if (points != null) {
         				GeoPoint g1 = null;
         				GeoPoint g2 = null;
@@ -337,13 +357,18 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         					}
         				}
         			}
-        			this.currentBuilding = this.locationsToVisit.get(0);
+        			if (this.locationsToVisit.size() > 1) {
+        				this.currentBuilding = this.locationsToVisit.get(1);
+        			} else {
+        				this.currentBuilding = this.locationsToVisit.get(0);
+        			}
         		} else if (buttonCode == GetDirections.BUTTON_AUDIO){
         			//display visual directions
         			List<Overlay> mapOverlays = this.myMapView.getOverlays();
         			mapOverlays.clear();
         			mapOverlays.add(this.loc);
-        			//mapOverlays.add(this.compass);
+        			mapOverlays.add(this.compass);
+        			this.currentBuilding = null;
         			ArrayList<Integer> points = campus.getPoints(extras.getString(GetDirections.CODE_NAME));
         			this.namesToSay = campus.getNamesOfPoints(extras.getString(GetDirections.CODE_NAME));
         			this.locationsToVisit = campus.getBuildingsToVisit(extras.getString(GetDirections.CODE_NAME));
@@ -368,6 +393,8 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         			if (this.namesToSay.size() > 1) {
         				Speak("Walk to " + this.namesToSay.get(1));
         				this.currentBuilding = this.locationsToVisit.get(1);
+        			} else {
+        				this.currentBuilding = this.locationsToVisit.get(0);
         			}
         		} else {
         			//do nothing
@@ -426,7 +453,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		float direction = (float)event.values[0];
-		//this.compass.updateMessage(Float.toString(direction));
+		this.compass.updateMessage(Float.toString(direction));
 		if (this.currentBuilding != null) {
 			boolean facing = facingBuilding(this.myLocation, this.currentBuilding, direction);
 			this.myCalendar = Calendar.getInstance();
@@ -445,18 +472,19 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 	}
 	
 	public boolean facingBuilding(Location current, Location destination, float current_angle)
-    {
-            double delta_x = destination.getLatitude() - current.getLatitude();
-            double delta_y = destination.getLongitude() - current.getLongitude();
-            double angle = Math.atan(Math.abs(delta_y/delta_x));
-            angle = angle * Math.PI / 180;
-            if (delta_x >= 0 && delta_y >=0) ;
-            else if (delta_x > 0 && delta_y < 0) angle = 360 - angle;
-            else if (delta_x < 0 && delta_y > 0) angle = 180 - angle;
-            else if (delta_x < 0 && delta_y > 0) angle = 180 + angle;
-            
-            return  Math.abs(current_angle - angle) <= 45;
-    }
+	   {
+	           double delta_y = destination.getLatitude() - current.getLatitude();
+	           double delta_x = destination.getLongitude() - current.getLongitude();
+	           double angle = Math.atan(Math.abs(delta_y/delta_x));
+	           angle = angle / Math.PI * 180;
+	           if (delta_x >= 0 && delta_y >=0) angle = 90 - angle;
+	           else if (delta_x > 0 && delta_y < 0) angle = 90 + angle;
+	           else if (delta_x < 0 && delta_y < 0) angle = 270 - angle;
+	           else if (delta_x < 0 && delta_y > 0) angle = 270 + angle;
+	           
+	           float diff_angle = (float) (Math.abs(current_angle - angle) > 180 ? 360 - Math.abs(current_angle - angle) : Math.abs(current_angle - angle));  
+	           return  diff_angle <= 45;
+	   }
 
 
 }
