@@ -85,6 +85,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
         this.myMapView = new MapView(this, "0qrdk76GfZi_YY2I6B3RAyXXakcpK4by2T__x-w");
         this.myMapView.setClickable(true);
         this.setContentView(myMapView);
+        this.myMapView.setBuiltInZoomControls(true);
         this.myMapController = this.myMapView.getController();
         this.myCalendar = Calendar.getInstance();
         this.campus = new Campus(this, this);
@@ -175,16 +176,18 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
      * i = zoom in
      * o = zoom out
      */
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_I) {
-	    	this.myMapController.zoomIn();
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_O) {
-	    	this.myMapController.zoomOut();
-            return true;
-        }
-        return false;
-    }
+    //public boolean onKeyDown(int keyCode, KeyEvent event) {
+        //if (keyCode == KeyEvent.KEYCODE_I) {
+	    //	this.myMapController.zoomIn();
+	    //	this.myMapView.invalidate();
+        //    return true;
+        //} else if (keyCode == KeyEvent.KEYCODE_O) {
+	    //	this.myMapController.zoomOut();
+	    //	this.myMapView.invalidate();
+        //    return true;
+        //}
+        //return false;
+    //}
 
     /**
      * Method not implemented.
@@ -459,6 +462,7 @@ public class Assignment3 extends MapActivity implements LocationListener, OnInit
 			this.myCalendar = Calendar.getInstance();
 			long distance = this.myCalendar.getTimeInMillis() - this.lastTime;
 			if (distance > 2000) {
+				
 				this.lastTime = this.myCalendar.getTimeInMillis();
 				if (facing == true) {
 					Toast.makeText(this, "FACING BUILDING", Toast.LENGTH_SHORT).show();
